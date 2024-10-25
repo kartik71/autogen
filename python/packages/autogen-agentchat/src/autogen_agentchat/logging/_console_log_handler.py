@@ -3,8 +3,7 @@ import logging
 import sys
 from datetime import datetime
 
-from .. import EVENT_LOGGER_NAME
-from ..agents import ChatMessage, StopMessage, TextMessage
+from ..messages import ChatMessage, StopMessage, TextMessage
 from ..teams._events import (
     ContentPublishEvent,
     SelectSpeakerEvent,
@@ -68,8 +67,3 @@ class ConsoleLogHandler(logging.Handler):
             sys.stdout.flush()
         else:
             raise ValueError(f"Unexpected log record: {record.msg}")
-
-
-logger = logging.getLogger(EVENT_LOGGER_NAME)
-logger.setLevel(logging.INFO)
-logger.addHandler(ConsoleLogHandler())

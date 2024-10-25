@@ -10,7 +10,7 @@ import pytest
 import requests
 from autogen_magentic_one.markdown_browser import BingMarkdownSearch, RequestsMarkdownBrowser
 
-BLOG_POST_URL = "https://microsoft.github.io/autogen/blog/2023/04/21/LLM-tuning-math"
+BLOG_POST_URL = "https://microsoft.github.io/autogen/0.2/blog/2023/04/21/LLM-tuning-math"
 BLOG_POST_TITLE = "Does Model and Inference Parameter Matter in LLM Applications? - A Case Study for MATH | AutoGen"
 BLOG_POST_STRING = "Large language models (LLMs) are powerful tools that can generate natural language texts for various applications, such as chatbots, summarization, translation, and more. GPT-4 is currently the state of the art LLM in the world. Is model selection irrelevant? What about inference parameters?"
 BLOG_POST_FIND_ON_PAGE_QUERY = "an example where high * complex"
@@ -128,10 +128,10 @@ def test_requests_markdown_browser() -> None:
     browser.visit_page(PLAIN_TEXT_URL)
     assert re.sub(r"\s+", " ", string=browser.page_content, flags=re.DOTALL).strip() == expected_results
 
-    # Disrectly download a ZIP file and compute its md5
+    # Disrectly download a ZIP file and compute its sha256
     response = requests.get(DOWNLOAD_URL, stream=True)
     response.raise_for_status()
-    expected_md5 = hashlib.md5(response.raw.read()).hexdigest()
+    expected_sha256 = hashlib.sha256(response.raw.read()).hexdigest()
 
     # Download it with the browser and check for a match
     viewport = browser.visit_page(DOWNLOAD_URL)
@@ -139,10 +139,10 @@ def test_requests_markdown_browser() -> None:
     assert m is not None
     download_loc = m.group(1)
     with open(download_loc, "rb") as fh:
-        downloaded_md5 = hashlib.md5(fh.read()).hexdigest()
+        downloaded_sha256 = hashlib.sha256(fh.read()).hexdigest()
 
     # MD%s should match
-    assert expected_md5 == downloaded_md5
+    assert expected_sha256 == downloaded_sha256
 
     # Fetch a PDF
     viewport = browser.visit_page(PDF_URL)

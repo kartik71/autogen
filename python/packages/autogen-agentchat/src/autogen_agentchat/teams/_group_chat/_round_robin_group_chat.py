@@ -1,8 +1,7 @@
 from typing import Callable, List
 
-from ...agents import BaseChatAgent
+from ...base import ChatAgent, TerminationCondition
 from .._events import ContentPublishEvent
-from .._termination import TerminationCondition
 from ._base_group_chat import BaseGroupChat
 from ._base_group_chat_manager import BaseGroupChatManager
 
@@ -74,7 +73,7 @@ class RoundRobinGroupChat(BaseGroupChat):
 
     """
 
-    def __init__(self, participants: List[BaseChatAgent]):
+    def __init__(self, participants: List[ChatAgent]):
         super().__init__(participants, group_chat_manager_class=RoundRobinGroupChatManager)
 
     def _create_group_chat_manager_factory(

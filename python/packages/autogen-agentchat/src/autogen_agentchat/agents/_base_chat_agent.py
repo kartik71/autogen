@@ -2,60 +2,15 @@ from abc import ABC, abstractmethod
 from typing import List, Sequence
 
 from autogen_core.base import CancellationToken
-from autogen_core.components import FunctionCall, Image
-from autogen_core.components.models import FunctionExecutionResult
 from autogen_core.components.tools import Tool
-from pydantic import BaseModel
+
+from ..base import ChatAgent, TaskResult, TerminationCondition, ToolUseChatAgent
+from ..messages import ChatMessage
+from ..teams import RoundRobinGroupChat
 
 
-class BaseMessage(BaseModel):
-    """A base message."""
-
-    source: str
-    """The name of the agent that sent this message."""
-
-
-class TextMessage(BaseMessage):
-    """A text message."""
-
-    content: str
-    """The content of the message."""
-
-
-class MultiModalMessage(BaseMessage):
-    """A multimodal message."""
-
-    content: List[str | Image]
-    """The content of the message."""
-
-
-class ToolCallMessage(BaseMessage):
-    """A message containing a list of function calls."""
-
-    content: List[FunctionCall]
-    """The list of function calls."""
-
-
-class ToolCallResultMessage(BaseMessage):
-    """A message containing the results of function calls."""
-
-    content: List[FunctionExecutionResult]
-    """The list of function execution results."""
-
-
-class StopMessage(BaseMessage):
-    """A message requesting stop of a conversation."""
-
-    content: str
-    """The content for the stop message."""
-
-
-ChatMessage = TextMessage | MultiModalMessage | StopMessage | ToolCallMessage | ToolCallResultMessage
-"""A message used by agents in a team."""
-
-
-class BaseChatAgent(ABC):
-    """Base class for a chat agent that can participant in a team."""
+class BaseChatAgent(ChatAgent, ABC):
+    """Base class for a chat agent."""
 
     def __init__(self, name: str, description: str) -> None:
         self._name = name
@@ -81,8 +36,24 @@ class BaseChatAgent(ABC):
         """Handle incoming messages and return a response message."""
         ...
 
+    async def run(
+        self,
+        task: str,
+        *,
+        cancellation_token: CancellationToken | None = None,
+        termination_condition: TerminationCondition | None = None,
+    ) -> TaskResult:
+        """Run the agent with the given task and return the result."""
+        group_chat = RoundRobinGroupChat(participants=[self])
+        result = await group_chat.run(
+            task=task,
+            cancellation_token=cancellation_token,
+            termination_condition=termination_condition,
+        )
+        return result
 
-class BaseToolUseChatAgent(BaseChatAgent):
+
+class BaseToolUseChatAgent(BaseChatAgent, ToolUseChatAgent):
     """Base class for a chat agent that can use tools.
 
     Subclass this base class to create an agent class that uses tools by returning
